@@ -61,7 +61,7 @@ add_action( 'admin_enqueue_scripts', 'my_admin_enqueue_styles' );
  */
 function my_api_key_shortcode( $atts ) {
     if ( ! is_user_logged_in() ) {
-        return '<p>You must be logged in to view your API key and points.</p>';
+        return '<p>You must be logged in to view your API key.</p>';
     }
 
     $user_id = get_current_user_id();
@@ -78,9 +78,6 @@ function my_api_key_shortcode( $atts ) {
         $api_key = my_generate_api_key( $user_id );
         update_user_meta( $user_id, 'api_key', $api_key );
     }
-
-    // Get user points directly (using the shortcode)
-    $points_output = do_shortcode('[user_points]');
 
     ob_start();
     ?>
