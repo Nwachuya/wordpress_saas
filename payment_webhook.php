@@ -1,4 +1,3 @@
-<?php
 // Register the payment post type
 function register_payment_post_type() {
     $args = array(
@@ -465,6 +464,94 @@ add_action('acf/include_fields', function() {
     ));
 });
 
+// Display payment details above content for payment post type
+function display_payment_details($content) {
+    if (is_singular('payment') && in_the_loop() && is_main_query()) {
+        global $post;
+        
+        // Get payment data
+        $payment_id = get_field('payment_id', $post->ID);
+        $email = get_field('email', $post->ID);
+        $amount = get_field('amount', $post->ID);
+        $payment_date = get_field('payment_date', $post->ID);
+        $product = get_field('product', $post->ID);
+        $stripe_event_id = get_field('stripe_event_id', $post->ID);
+        $customer_id = get_field('customer_id', $post->ID);
+        $payment_status = get_field('payment_status', $post->ID);
+        $invoice_pdf = get_field('invoice_pdf', $post->ID);
+        
+        // Build the payment details display
+        $payment_details = '<div class="payment-details" style="background: #FFFFFF00; border: 1px solid #ddd; border-radius: 5px; padding: 20px; margin-bottom: 20px; font-family: Arial, sans-serif;">';
+        $payment_details .= '<h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #007cba; padding-bottom: 10px;">Payment Details</h3>';
+        
+        $payment_details .= '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">';
+        
+        // Left column
+        $payment_details .= '<div>';
+        if (!empty($payment_id)) {
+            $payment_details .= '<p><strong>Payment ID:</strong> <span style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px;">' . esc_html($payment_id) . '</span></p>';
+        }
+        if (!empty($email)) {
+            $payment_details .= '<p><strong>Customer Email:</strong> ' . esc_html($email) . '</p>';
+        }
+        if (!empty($amount)) {
+            $payment_details .= '<p><strong>Amount:</strong> <span style="color: #28a745; font-weight: bold;">$' . number_format($amount, 2) . '</span></p>';
+        }
+        if (!empty($payment_date)) {
+            $payment_details .= '<p><strong>Payment Date:</strong> ' . esc_html($payment_date) . '</p>';
+        }
+        if (!empty($product)) {
+            $payment_details .= '<p><strong>Product:</strong> ' . esc_html($product) . '</p>';
+        }
+        $payment_details .= '</div>';
+        
+        // Right column
+        $payment_details .= '<div>';
+        if (!empty($payment_status)) {
+            $status_color = '';
+            switch (strtolower($payment_status)) {
+                case 'paid':
+                    $status_color = '#28a745';
+                    break;
+                case 'pending':
+                    $status_color = '#ffc107';
+                    break;
+                case 'failed':
+                    $status_color = '#dc3545';
+                    break;
+                case 'refunded':
+                    $status_color = '#6c757d';
+                    break;
+                case 'canceled':
+                    $status_color = '#6c757d';
+                    break;
+                default:
+                    $status_color = '#007cba';
+            }
+            $payment_details .= '<p><strong>Status:</strong> <span style="color: ' . $status_color . '; font-weight: bold; text-transform: capitalize;">' . esc_html($payment_status) . '</span></p>';
+        }
+        if (!empty($customer_id)) {
+            $payment_details .= '<p><strong>Customer ID:</strong> <span style="font-family: monospace; font-size: 0.9em;">' . esc_html($customer_id) . '</span></p>';
+        }
+        if (!empty($stripe_event_id)) {
+            $payment_details .= '<p><strong>Stripe Event ID:</strong> <span style="font-family: monospace; font-size: 0.9em;">' . esc_html($stripe_event_id) . '</span></p>';
+        }
+        if (!empty($invoice_pdf)) {
+            $payment_details .= '<p><strong>Invoice:</strong> <a href="' . esc_url($invoice_pdf) . '" target="_blank" style="color: #007cba; text-decoration: none;">View PDF</a></p>';
+        }
+        $payment_details .= '</div>';
+        
+        $payment_details .= '</div>'; // Close grid
+        $payment_details .= '</div>'; // Close payment-details div
+        
+        // Prepend payment details to content
+        $content = $payment_details . $content;
+    }
+    
+    return $content;
+}
+add_filter('the_content', 'display_payment_details');
+
 // Create the webhook endpoint
 add_action('rest_api_init', function () {
     register_rest_route('webhook/v1', '/payment', array(
@@ -667,4 +754,3 @@ function handle_payment_webhook($request) {
         'email_fetched' => !empty($email) ? 'yes' : 'no'
     ), 201);
 }
-?>
