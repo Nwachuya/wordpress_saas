@@ -1,0 +1,11 @@
+{
+    "name": "wp-saas/stripe-plugin",
+    "description": "WordPress plugin with Stripe integration",
+    "type": "wordpress-plugin",
+    "require": {
+        "stripe/stripe-php": "^14.0"
+    },
+    "autoload": {
+        "files": ["your-plugin-file.php"]
+    }
+}
